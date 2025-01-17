@@ -1,0 +1,15 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: install apache2 package
+    yum:
+      name: httpd
+      state: latest
+
+  - name: install iotop package
+    yum:
+      name: iotop
+      state: latest
