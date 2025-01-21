@@ -4,6 +4,22 @@
   become: true
   tasks:
 
+  - name: install updates (CentOS)
+    tags: always
+    dnf:
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution == "Amazon"
+  
+
+  - name: install updates (Ubuntu)
+    tags: always
+    dnf:
+      update_cache: yes
+    changed_when: false
+    when: ansible_distribution == "Ubuntu"
+
+
   - name: install httpd package
     yum:
       name: httpd
@@ -20,6 +36,31 @@
   #    state: latest
   #  when: ansible_distribution == "Amazon"
 
+  - name: start httpd (Amazon)
+    tags: apache,centos,httpd
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "Amazon"
+
+  - name: change e-mail address for admin
+    tags: apache,centos,httpd
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin somebody@somewhere.net
+    when: ansible_distribution == "Amazon"
+    register: httpd
+
+  - name: restart httpd (CentOS)
+    tags: apache,centos,httpd
+    service: 
+      name: httpd
+      state: restarted
+    when: httpd.changed
+
+
   - name: copy default html file for site
     tags: apache,apache,httpd
     copy: 
@@ -28,6 +69,14 @@
       owner: root
       group: root
       mode: 0644
+
+
+  - name: add ssh key for simone
+    tags: always
+    authorized_key:
+      user: simone
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEyLqO0AoVM8Q0Z8dgnyAvvInxlSiFnz1HYqQ9ZHpgs4 ansible"
+
 
 
   - name: install unzip
